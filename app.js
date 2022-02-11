@@ -1,67 +1,60 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const request = require("request");
-const https = require("https");
-const dotenv = require("dotenv");
+const client = require("@mailchimp/mailchimp_marketing");
+const request = require("request")
+require("dotenv").config();
 
 const app = express();
 
-app.use(express.static("public"));
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+// mailchimp config
+client.setConfig({
+  apiKey: process.env.APIKEY,
+  server: process.env.SEVER_PREFIX,
+});
 
-app.get("/", function(req, res) {
+// allowing app to use body-parser
+app.use(bodyParser.urlencoded({extended: true}));
+
+// allowing app to use express.static to load static files
+app.use(express.static("public"));
+
+app.get("/", function (req, res) {
   res.sendFile(__dirname + "/signup.html");
 });
 
-app.post("/", function(req, res) {
-  var firstName = req.body.firstName;
-  var lastName = req.body.lastName;
-  var eamil = req.body.email;
+app.post("/", function (req, res) {
+  // getting information from the signup page using body-parser
+  const firstName = req.body.fName;
+  const lastName = req.body.lName;
+  const email = req.body.email;
 
-  var data = {
+// sending request and creating the data to send to the external server
+  const run = async () => {
+  const response = await client.lists.batchListMembers(process.env.LIST_ID, {
     members: [{
-      email_address: eamil,
+      email_address: email,
       status: "subscribed",
       merge_fields: {
         FNAME: firstName,
         LNAME: lastName
       }
-    }]
-
-  };
-
-  const jsonData = JSON.stringify(data);
-
-  const apiKey = process.env.APIKEY;
-  const listId = process.env.LIST_ID;
-  const url = process.env.URL;
-  const options = {
-    method: "POST",
-    auth: process.env.OPTIONS_AUTH
-  }
-
-  const request = https.request(url, options, function(response) {
-    if (response.statusCode === 200) {
-      res.sendFile(__dirname + "/success.html");
-    } else {
-      res.sendFile(__dirname + "/failure.html");
-    }
-    response.on("data", function(data) {
-      console.log(JSON.parse(data));
-    });
-
+    }],
   });
+  console.log(response.errors[0]);
+  if (response.errors[0] === undefined){
+    res.sendFile(__dirname + "/success.html");
+  }else{
+    res.sendFile(__dirname + "/failure.html");
+  }
+};
+  run();
+ });
 
-  request.write(jsonData);
-  request.end();
-});
 
-app.post("/failure",function(req,res){
-  res.redirect("/");
+app.post("/failure", function (req, res) {
+  res.redirect("/")
 })
 
-app.listen(process.env.PORT || 3000, function() {
-  console.log("Server is running on port 3000.")
+app.listen(3000, function (req, res) {
+  console.log("Server is running on port 3000");
 })
