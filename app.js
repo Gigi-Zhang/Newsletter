@@ -36,7 +36,7 @@ app.post("/", function (req, res) {
       status: "subscribed",
       merge_fields: {
         FNAME: firstName,
-        LNAME: lastName
+        LNAME: lastName,
       }
     }],
   });
@@ -50,6 +50,7 @@ app.post("/", function (req, res) {
   run();
  });
 
+<<<<<<< HEAD
 app.post("/failure", function (req, res) {
   res.redirect("/")
 })
@@ -57,3 +58,18 @@ app.post("/failure", function (req, res) {
 app.listen(3000, function (req, res) {
   console.log("Server is running on port 3000");
 })
+=======
+
+app.post("/failure", function (req, res) {
+  res.redirect("/")
+});
+
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+};
+
+app.listen(port, function (req, res) {
+  console.log("Server is running on port 3000");
+});
+>>>>>>> h12-solution

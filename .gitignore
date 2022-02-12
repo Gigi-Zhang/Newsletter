@@ -1,3 +1,6 @@
 .env
+<<<<<<< HEAD
 # Dependency directories
+=======
+>>>>>>> h12-solution
 node_modules/
